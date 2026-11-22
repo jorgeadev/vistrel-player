@@ -7,7 +7,8 @@
     xmlns:local="using:Vistrel.App"
     Title="Vistrel Player">
 
-  <Grid x:Name="Root" AllowDrop="True" DragOver="Root_DragOver" Drop="Root_Drop">
+  <Grid x:Name="Root" AllowDrop="True" DragOver="Root_DragOver" Drop="Root_Drop"
+        Background="{StaticResource VistrelChromeBrush}" KeyboardAcceleratorPlacementMode="Hidden">
     <Grid.KeyboardAccelerators>
       <KeyboardAccelerator Key="Space" Invoked="Accel_PlayPause" />
       <KeyboardAccelerator Key="K" Invoked="Accel_PlayPause" />
@@ -29,12 +30,24 @@
     </Grid.KeyboardAccelerators>
 
     <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
 
+    <!-- Custom title bar: same colour as the control bar; the system caption buttons sit on the right. -->
+    <Grid x:Name="AppTitleBar" Height="40" Background="{StaticResource VistrelChromeBrush}">
+      <StackPanel Orientation="Horizontal" Spacing="10" Margin="14,0,0,0" VerticalAlignment="Center">
+        <Image Source="ms-appx:///Assets/Square44x44Logo.targetsize-24.png" Width="16" Height="16"
+               AutomationProperties.AccessibilityView="Raw" />
+        <TextBlock x:Name="AppTitleText" Text="{x:Bind Vm.Title, Mode=OneWay}" VerticalAlignment="Center"
+                   Style="{StaticResource CaptionTextBlockStyle}" Foreground="{StaticResource VistrelSecondaryTextBrush}"
+                   TextTrimming="CharacterEllipsis" />
+      </StackPanel>
+    </Grid>
+
     <!-- Video surface -->
-    <Grid Background="Black" DoubleTapped="Video_DoubleTapped">
+    <Grid Grid.Row="1" Background="{StaticResource VistrelVideoBackgroundBrush}" DoubleTapped="Video_DoubleTapped">
       <vlc:VideoView x:Name="VideoView" Initialized="VideoView_Initialized"
                      AutomationProperties.Name="Video" />
 
@@ -51,7 +64,7 @@
             <TextBlock Text="Open a video" />
           </StackPanel>
         </Button>
-        <TextBlock Text="or drop a file here  ·  Ctrl+O" Foreground="#B7C3D6" HorizontalAlignment="Center" />
+        <TextBlock Text="or drop a file here  ·  Ctrl+O" Foreground="{StaticResource VistrelSecondaryTextBrush}" HorizontalAlignment="Center" />
       </StackPanel>
 
       <InfoBar IsOpen="{x:Bind Vm.HasError, Mode=OneWay}" Severity="Error" Title="Can't play this file"
@@ -68,8 +81,20 @@
     </Grid>
 
     <!-- Transport controls -->
-    <Grid x:Name="ControlBar" Grid.Row="1" Padding="12,8" ColumnSpacing="8"
-          Background="{ThemeResource LayerFillColorDefaultBrush}">
+    <Grid x:Name="ControlBar" Grid.Row="2" Padding="12,8" ColumnSpacing="6"
+          Background="{StaticResource VistrelChromeBrush}"
+          BorderBrush="{StaticResource VistrelChromeDividerBrush}" BorderThickness="0,1,0,0">
+      <Grid.Resources>
+        <!-- Disabled buttons (nothing loaded yet) stay flat too; only the dimmed icon shows. -->
+        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="Transparent" />
+        <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="Transparent" />
+        <!-- Flat icon buttons: no box until hovered, like other media players. -->
+        <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+          <Setter Property="Background" Value="Transparent" />
+          <Setter Property="BorderBrush" Value="Transparent" />
+          <Setter Property="Padding" Value="10,8" />
+        </Style>
+      </Grid.Resources>
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
@@ -126,7 +151,7 @@
         </Button.Flyout>
       </Button>
 
-      <DropDownButton Grid.Column="8" Content="{x:Bind Vm.RateText, Mode=OneWay}" AutomationProperties.Name="Playback speed"
+      <DropDownButton Grid.Column="8" Background="Transparent" BorderBrush="Transparent" Content="{x:Bind Vm.RateText, Mode=OneWay}" AutomationProperties.Name="Playback speed"
                       ToolTipService.ToolTip="Playback speed">
         <DropDownButton.Flyout>
           <MenuFlyout Placement="Top">

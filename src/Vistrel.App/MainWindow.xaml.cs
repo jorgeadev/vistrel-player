@@ -1,11 +1,12 @@
 using LibVLCSharp.Platforms.Windows;
 using LibVLCSharp.Shared;
-using Microsoft.UI.Composition.SystemBackdrops;
+using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Windows.UI;
 using Serilog;
 using Vistrel.App.ViewModels;
 using Vistrel.Core;
@@ -32,8 +33,7 @@ public sealed partial class MainWindow : Window
 
         AppWindow.SetIcon("Assets/app.ico");
         AppWindow.Resize(new Windows.Graphics.SizeInt32(1280, 800));
-        // Mica on Windows 11; acrylic on Windows 10, where Mica is not available.
-        SystemBackdrop = MicaController.IsSupported() ? new MicaBackdrop() : new DesktopAcrylicBackdrop();
+        ConfigureTitleBar();
         Log.Debug("MainWindow: window configured");
 
         Vm.PropertyChanged += (_, e) =>
@@ -44,6 +44,28 @@ public sealed partial class MainWindow : Window
     }
 
     public PlayerViewModel Vm { get; }
+
+    /// <summary>
+    /// Draws our own title bar in the app's chrome colour instead of the system one, which follows the
+    /// Windows light/dark setting and clashed with the dark player. The caption buttons are recoloured to match.
+    /// </summary>
+    private void ConfigureTitleBar()
+    {
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+
+        var bar = AppWindow.TitleBar;
+        bar.PreferredHeightOption = TitleBarHeightOption.Tall; // 48 px caption buttons, room for the drag area
+        bar.ButtonBackgroundColor = Colors.Transparent;
+        bar.ButtonInactiveBackgroundColor = Colors.Transparent;
+        bar.ButtonForegroundColor = Color.FromArgb(0xFF, 0xE6, 0xEA, 0xF0);
+        bar.ButtonInactiveForegroundColor = Color.FromArgb(0xFF, 0x6B, 0x74, 0x84);
+        bar.ButtonHoverBackgroundColor = Color.FromArgb(0xFF, 0x24, 0x29, 0x33);
+        bar.ButtonHoverForegroundColor = Colors.White;
+        bar.ButtonPressedBackgroundColor = Color.FromArgb(0xFF, 0x2E, 0x34, 0x40);
+        bar.ButtonPressedForegroundColor = Colors.White;
+        AppTitleBar.Height = 48;
+    }
 
     public static Visibility CollapsedWhen(bool value) => value ? Visibility.Collapsed : Visibility.Visible;
     public static Visibility VisibleWhen(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
@@ -192,6 +214,8 @@ public sealed partial class MainWindow : Window
     {
         var full = AppWindow.Presenter.Kind == AppWindowPresenterKind.FullScreen;
         AppWindow.SetPresenter(full ? AppWindowPresenterKind.Default : AppWindowPresenterKind.FullScreen);
+        // Full screen shows only the video and controls; the title bar returns with the window.
+        AppTitleBar.Visibility = full ? Visibility.Visible : Visibility.Collapsed;
         ControlBar.Visibility = Visibility.Visible;
         FullscreenIcon.Glyph = full ? "" : ""; // Full screen / Back to window
     }
