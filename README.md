@@ -47,12 +47,9 @@ Use `-p:Platform=ARM64` for ARM64 PCs.
 | `tests/` | xUnit tests |
 | `branding/` | Logo SVGs and the script that generates every MSIX icon (`npm install && npm run assets`) |
 
-## Publishing to the Microsoft Store
+## Releases and the Microsoft Store
 
-1. Reserve the name "Vistrel Player" in [Partner Center](https://partner.microsoft.com/dashboard).
-2. Copy the package identity (Name, Publisher, PublisherDisplayName) from **Product identity** into `src/Vistrel.App/Package.appxmanifest`.
-3. Build with `-p:UapAppxPackageBuildMode=StoreUpload -p:AppxBundle=Always -p:AppxBundlePlatforms="x64|arm64"` and upload the `.msixupload`.
-4. Use `PRIVACY.md` (published on GitHub Pages) as the privacy policy URL.
+Pushing a `v*` tag on `main` builds the Store upload (x64 + ARM64) and publishes a GitHub release. See [docs/RELEASING.md](docs/RELEASING.md) for the full steps and [docs/store/](docs/store/) for the Store listing text and screenshots.
 
 ## Contributing
 

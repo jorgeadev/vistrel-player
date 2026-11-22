@@ -1,0 +1,62 @@
+name: Release
+
+# Push a tag like v0.1.0 on main to build the Microsoft Store upload and publish a GitHub release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Check the tag matches the package version
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'.TrimStart('v')
+          [xml]$manifest = Get-Content src/Vistrel.App/Package.appxmanifest
+          $version = $manifest.Package.Identity.Version
+          if ($version -ne "$tag.0") {
+            throw "Tag v$tag does not match Package.appxmanifest version $version (expected $tag.0). Bump the version first."
+          }
+          git merge-base --is-ancestor $env:GITHUB_SHA origin/main
+          if ($LASTEXITCODE -ne 0) { throw "Release tags must point at a commit on main." }
+
+      - name: Test
+        run: dotnet test --solution VistrelPlayer.slnx
+
+      - name: Build Store upload (x64 + ARM64)
+        run: >
+          dotnet build src/Vistrel.App -c Release
+          -p:Platform=x64
+          -p:GenerateAppxPackageOnBuild=true
+          -p:UapAppxPackageBuildMode=StoreUpload
+          -p:AppxBundle=Always
+          "-p:AppxBundlePlatforms=x64|ARM64"
+          -p:AppxPackageDir=${{ github.workspace }}\artifacts\store\
+
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $upload = Get-ChildItem artifacts/store -Filter *.msixupload | Select-Object -First 1
+          if (-not $upload) { throw "No .msixupload was produced." }
+          $sums = "artifacts/store/SHA256SUMS.txt"
+          "$((Get-FileHash $upload.FullName -Algorithm SHA256).Hash.ToLower())  $($upload.Name)" | Set-Content $sums
+
+          $ghArgs = @('release', 'create', '${{ github.ref_name }}', $upload.FullName, $sums,
+                    '--title', 'Vistrel Player ${{ github.ref_name }}', '--generate-notes', '--verify-tag')
+          # 0.x versions and tags like v1.0.0-beta are pre-releases.
+          if ('${{ github.ref_name }}' -match '^v0\.|-') { $ghArgs += '--prerelease' }
+          gh @ghArgs
