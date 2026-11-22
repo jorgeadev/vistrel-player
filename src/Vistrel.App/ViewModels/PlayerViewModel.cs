@@ -1,8 +1,10 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Dispatching;
 using Serilog;
 using Vistrel.Core;
+using Vistrel.Core.History;
 using Vistrel.Core.Playback;
 
 namespace Vistrel.App.ViewModels;
@@ -24,14 +26,35 @@ public sealed partial class PlayerViewModel : ObservableObject
     private static readonly TimeSpan AudioDelayStep = TimeSpan.FromMilliseconds(50);
     private readonly DispatcherQueueTimer _osdTimer;
 
-    public PlayerViewModel(DispatcherQueue dispatcher)
+    /// <summary>How often the resume position is saved while playing (protects against crashes and power loss).</summary>
+    private static readonly TimeSpan HistorySaveInterval = TimeSpan.FromSeconds(10);
+    private const int RecentFilesShown = 8;
+
+    private readonly PlaybackHistory _history;
+    private readonly DispatcherQueueTimer _historyTimer;
+    private string? _currentPath;
+    private TimeSpan? _pendingResume;
+
+    public PlayerViewModel(DispatcherQueue dispatcher, PlaybackHistory history)
     {
         _dispatcher = dispatcher;
+        _history = history;
         _osdTimer = dispatcher.CreateTimer();
         _osdTimer.Interval = TimeSpan.FromSeconds(1.6);
         _osdTimer.IsRepeating = false;
         _osdTimer.Tick += (_, _) => IsOsdVisible = false;
+
+        _historyTimer = dispatcher.CreateTimer();
+        _historyTimer.Interval = HistorySaveInterval;
+        _historyTimer.Tick += (_, _) => SaveProgress();
+
+        RefreshRecentFiles();
     }
+
+    /// <summary>Recently played files that still exist, newest first (shown on the start screen).</summary>
+    public ObservableCollection<RecentFileItem> RecentFiles { get; } = [];
+
+    [ObservableProperty] public partial bool HasRecentFiles { get; set; }
 
     /// <summary>Short on-screen message such as "Subtitle delay +300 ms".</summary>
     [ObservableProperty] public partial string OsdText { get; set; } = "";
@@ -79,10 +102,73 @@ public sealed partial class PlayerViewModel : ObservableObject
             return;
         }
         Log.Information("Opening {Path}", path);
+        SaveProgress(); // remember where the previous file stopped
+
+        _currentPath = path;
+        _pendingResume = _history.GetResumePosition(path);
         Title = $"{Path.GetFileName(path)} – Vistrel Player";
         HasMedia = true;
         ApplyPosition(TimeSpan.Zero);
         _engine.Open(uri);
+    }
+
+    // ---- Resume and recent files ----
+
+    /// <summary>Records the current position and writes the history file in the background.</summary>
+    public void SaveProgress()
+    {
+        if (_engine is null || _currentPath is null || _pendingResume is not null) return;
+        var duration = TimeSpan.FromSeconds(DurationSeconds);
+        if (duration <= TimeSpan.FromSeconds(1)) return; // length not known yet
+        _history.Record(_currentPath, _engine.Position, duration);
+        PersistHistory();
+    }
+
+    /// <summary>Saves synchronously; used when the window closes.</summary>
+    public void SaveProgressNow()
+    {
+        if (_engine is not null && _currentPath is not null && _pendingResume is null && DurationSeconds > 1)
+            _history.Record(_currentPath, _engine.Position, TimeSpan.FromSeconds(DurationSeconds));
+        try { _history.Save(); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Log.Warning(ex, "Could not save playback history"); }
+    }
+
+    [RelayCommand]
+    private void StartOver()
+    {
+        if (_engine is null || !HasMedia) return;
+        _engine.Seek(TimeSpan.Zero);
+        ShowOsd("Playing from the beginning");
+    }
+
+    [RelayCommand]
+    private void ClearHistory()
+    {
+        _history.Clear();
+        PersistHistory();
+        RefreshRecentFiles();
+        Log.Information("Playback history cleared");
+    }
+
+    private void PersistHistory()
+    {
+        _ = Task.Run(() =>
+        {
+            try { _history.Save(); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Log.Warning(ex, "Could not save playback history"); }
+        });
+    }
+
+    private void RefreshRecentFiles()
+    {
+        RecentFiles.Clear();
+        foreach (var e in _history.GetRecent(RecentFilesShown * 3))
+        {
+            if (RecentFiles.Count == RecentFilesShown) break;
+            if (!File.Exists(e.Path)) continue; // moved or deleted files are hidden, not shown broken
+            RecentFiles.Add(new RecentFileItem(e));
+        }
+        HasRecentFiles = RecentFiles.Count > 0;
     }
 
     // ---- Tracks and delays ----
@@ -252,7 +338,30 @@ public sealed partial class PlayerViewModel : ObservableObject
     {
         Log.Debug("Playback state: {State} at {Position}", state, PositionText);
         IsPlaying = state is PlaybackState.Playing or PlaybackState.Buffering or PlaybackState.Opening;
-        if (state == PlaybackState.Ended) ApplyPosition(TimeSpan.FromSeconds(DurationSeconds));
+
+        if (state == PlaybackState.Playing && _pendingResume is { } resume && _engine is not null)
+        {
+            _pendingResume = null;
+            _engine.Seek(resume);
+            ShowOsd($"Resumed at {TimeFormatter.Format(resume)}  ·  Home to start over");
+            Log.Information("Resumed {Path} at {Position}", _currentPath, resume);
+        }
+
+        if (state == PlaybackState.Playing) _historyTimer.Start();
+        else _historyTimer.Stop();
+
+        if (state == PlaybackState.Paused) SaveProgress();
+        if (state == PlaybackState.Ended)
+        {
+            ApplyPosition(TimeSpan.FromSeconds(DurationSeconds));
+            if (_currentPath is not null)
+            {
+                // Watched to the end: next time it starts from the beginning.
+                _history.Record(_currentPath, TimeSpan.FromSeconds(DurationSeconds), TimeSpan.FromSeconds(DurationSeconds));
+                PersistHistory();
+            }
+        }
+        if (state == PlaybackState.Error) _pendingResume = null;
     }
 
     private void ApplyPosition(TimeSpan position)

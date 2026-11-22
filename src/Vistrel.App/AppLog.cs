@@ -8,7 +8,7 @@ namespace Vistrel.App;
 /// </summary>
 internal static class AppLog
 {
-    public static string Directory { get; } = ResolveDirectory();
+    public static string Directory => AppPaths.LogDirectory;
 
     public static void Initialize()
     {
@@ -26,23 +26,5 @@ internal static class AppLog
                 formatProvider: System.Globalization.CultureInfo.InvariantCulture)
             .CreateLogger();
         Log.Information("Vistrel Player {Version} starting", typeof(AppLog).Assembly.GetName().Version);
-    }
-
-    private static string ResolveDirectory()
-    {
-        string root;
-        try
-        {
-            // Packaged (MSIX): the app's private LocalState folder, removed on uninstall.
-            root = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
-        }
-        catch (InvalidOperationException)
-        {
-            // Unpackaged dev run.
-            root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vistrel");
-        }
-        var dir = Path.Combine(root, "logs");
-        System.IO.Directory.CreateDirectory(dir);
-        return dir;
     }
 }

@@ -10,6 +10,7 @@ using Windows.UI;
 using Serilog;
 using Vistrel.App.ViewModels;
 using Vistrel.Core;
+using Vistrel.Core.History;
 using Vistrel.Core.Playback;
 using MediaTrack = Vistrel.Core.Playback.MediaTrack;
 using Vistrel.Playback.Vlc;
@@ -27,7 +28,9 @@ public sealed partial class MainWindow : Window
 
     public MainWindow()
     {
-        Vm = new PlayerViewModel(DispatcherQueue);
+        var history = PlaybackHistory.Load(AppPaths.HistoryFile);
+        if (history.LoadError is not null) Log.Warning("{Error}", history.LoadError);
+        Vm = new PlayerViewModel(DispatcherQueue, history);
         InitializeComponent();
         Log.Debug("MainWindow: XAML loaded");
 
@@ -238,6 +241,12 @@ public sealed partial class MainWindow : Window
     private void Accel_SubtitlesLater(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e) => Handle(e, Vm.SubtitlesLaterCommand.Execute);
     private void Accel_CycleSubtitles(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e) => Handle(e, Vm.CycleSubtitlesCommand.Execute);
     private void Accel_CycleAudio(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e) => Handle(e, Vm.CycleAudioCommand.Execute);
+    private void Accel_StartOver(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e) => Handle(e, Vm.StartOverCommand.Execute);
+
+    private void RecentFiles_ItemClick(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is RecentFileItem item) OpenFile(item.Path);
+    }
 
     private void Accel_ExitFullscreen(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e)
     {
@@ -252,6 +261,7 @@ public sealed partial class MainWindow : Window
 
     private void OnClosed(object sender, WindowEventArgs args)
     {
+        Vm.SaveProgressNow(); // before the engine stops, while the position is still known
         VideoView.MediaPlayer = null;
         _engine?.Dispose();
         Log.Information("Main window closed");

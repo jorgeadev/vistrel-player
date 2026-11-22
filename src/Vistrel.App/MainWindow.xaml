@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vlc="using:LibVLCSharp.Platforms.Windows"
     xmlns:local="using:Vistrel.App"
+    xmlns:vm="using:Vistrel.App.ViewModels"
     Title="Vistrel Player">
 
   <Grid x:Name="Root" AllowDrop="True" DragOver="Root_DragOver" Drop="Root_Drop"
@@ -27,6 +28,7 @@
       <KeyboardAccelerator Key="H" Invoked="Accel_SubtitlesLater" />
       <KeyboardAccelerator Key="V" Invoked="Accel_CycleSubtitles" />
       <KeyboardAccelerator Key="B" Invoked="Accel_CycleAudio" />
+      <KeyboardAccelerator Key="Home" Invoked="Accel_StartOver" />
     </Grid.KeyboardAccelerators>
 
     <Grid.RowDefinitions>
@@ -54,7 +56,7 @@
       <!-- Empty state: shown until a file is opened -->
       <StackPanel x:Name="EmptyState" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16"
                   Visibility="{x:Bind local:MainWindow.CollapsedWhen(Vm.HasMedia), Mode=OneWay}">
-        <Image Source="ms-appx:///Assets/Square150x150Logo.scale-200.png" Width="120" Height="120"
+        <Image Source="ms-appx:///Assets/Square150x150Logo.scale-200.png" Width="104" Height="104"
                AutomationProperties.AccessibilityView="Raw" />
         <TextBlock Text="Vistrel Player" Foreground="White" FontSize="28" FontWeight="SemiBold" HorizontalAlignment="Center" />
         <Button x:Name="OpenHeroButton" Click="Open_Click" HorizontalAlignment="Center" Style="{StaticResource AccentButtonStyle}"
@@ -65,6 +67,41 @@
           </StackPanel>
         </Button>
         <TextBlock Text="or drop a file here  ·  Ctrl+O" Foreground="{StaticResource VistrelSecondaryTextBrush}" HorizontalAlignment="Center" />
+
+        <!-- Recent files: click to continue where you left off -->
+        <StackPanel Width="520" Margin="0,20,0,0" Spacing="4"
+                    Visibility="{x:Bind local:MainWindow.VisibleWhen(Vm.HasRecentFiles), Mode=OneWay}">
+          <Grid>
+            <TextBlock Text="Recent" Style="{StaticResource BodyStrongTextBlockStyle}" VerticalAlignment="Center" />
+            <HyperlinkButton Content="Clear history" HorizontalAlignment="Right" Padding="6,2"
+                             Command="{x:Bind Vm.ClearHistoryCommand}"
+                             ToolTipService.ToolTip="Forget recent files and resume positions" />
+          </Grid>
+          <ListView ItemsSource="{x:Bind Vm.RecentFiles}" SelectionMode="None" IsItemClickEnabled="True"
+                    ItemClick="RecentFiles_ItemClick" MaxHeight="300" AutomationProperties.Name="Recent files">
+            <ListView.ItemTemplate>
+              <DataTemplate x:DataType="vm:RecentFileItem">
+                <Grid Padding="0,8" ColumnSpacing="12" ToolTipService.ToolTip="{x:Bind Path}"
+                      AutomationProperties.Name="{x:Bind Name}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <FontIcon Glyph="&#xE714;" FontSize="18" VerticalAlignment="Center"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                  <StackPanel Grid.Column="1" Spacing="2">
+                    <TextBlock Text="{x:Bind Name}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{x:Bind Detail}" Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{StaticResource VistrelSecondaryTextBrush}" />
+                    <ProgressBar Value="{x:Bind Progress}" Maximum="1" Margin="0,4,0,0"
+                                 Visibility="{x:Bind local:MainWindow.VisibleWhen(HasProgress)}"
+                                 AutomationProperties.AccessibilityView="Raw" />
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ListView.ItemTemplate>
+          </ListView>
+        </StackPanel>
       </StackPanel>
 
       <InfoBar IsOpen="{x:Bind Vm.HasError, Mode=OneWay}" Severity="Error" Title="Can't play this file"
