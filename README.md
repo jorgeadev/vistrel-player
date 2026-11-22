@@ -14,6 +14,7 @@ A fast, private video player for Windows 10 and 11, built with WinUI 3 and LibVL
 - Keyboard shortcuts: Space/K play-pause · ←/→ 5 s · J/L 30 s · ↑/↓ volume · M mute · V/B cycle subtitles/audio · G/H subtitle delay · F/F11 full screen · Esc exit full screen · Ctrl+O open
 - Dark, distraction-free design in the Vistrel colours, with a matching title bar
 - Audio and subtitle track menus, external subtitle files, subtitle and audio delay
+- Resumes each video where you left off; recent files on the start screen (Home key starts over)
 - No telemetry; local logs only ([privacy policy](PRIVACY.md))
 
 ## Build and run
