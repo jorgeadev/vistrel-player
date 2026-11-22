@@ -62,3 +62,23 @@ public class MediaFormatsTests
     [Fact]
     public void Recognises_subtitles() => Assert.True(MediaFormats.IsSubtitle("movie.en.SRT"));
 }
+
+public class DelayTests
+{
+    [Fact]
+    public void Delay_is_clamped_both_ways()
+    {
+        Assert.Equal(PlaybackLimits.MaxDelay, PlaybackLimits.ClampDelay(TimeSpan.FromHours(1)));
+        Assert.Equal(-PlaybackLimits.MaxDelay, PlaybackLimits.ClampDelay(TimeSpan.FromHours(-1)));
+        Assert.Equal(TimeSpan.FromMilliseconds(-300), PlaybackLimits.ClampDelay(TimeSpan.FromMilliseconds(-300)));
+    }
+
+    [Theory]
+    [InlineData(0, "0 ms")]
+    [InlineData(300, "+300 ms")]
+    [InlineData(-100, "\u2212100 ms")]
+    [InlineData(1500, "+1.5 s")]
+    [InlineData(-2250, "\u22122.25 s")]
+    public void Delay_formats_for_display(int ms, string expected) =>
+        Assert.Equal(expected, PlaybackLimits.FormatDelay(TimeSpan.FromMilliseconds(ms)));
+}

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Integration tests: drive the real LibVLC engine headless (dummy video and audio output). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+    <!-- The engine references the Windows App SDK for its WinUI view, but these tests never use it. -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSdkBootstrapInitialize>false</WindowsAppSdkBootstrapInitialize>
+    <WindowsAppSdkDeploymentManagerInitialize>false</WindowsAppSdkDeploymentManagerInitialize>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Vistrel.Playback.Vlc\Vistrel.Playback.Vlc.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Media\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

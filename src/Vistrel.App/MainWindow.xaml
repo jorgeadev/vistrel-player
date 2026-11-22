@@ -22,6 +22,10 @@
       <KeyboardAccelerator Key="F11" Invoked="Accel_Fullscreen" />
       <KeyboardAccelerator Key="Escape" Invoked="Accel_ExitFullscreen" />
       <KeyboardAccelerator Key="O" Modifiers="Control" Invoked="Accel_Open" />
+      <KeyboardAccelerator Key="G" Invoked="Accel_SubtitlesEarlier" />
+      <KeyboardAccelerator Key="H" Invoked="Accel_SubtitlesLater" />
+      <KeyboardAccelerator Key="V" Invoked="Accel_CycleSubtitles" />
+      <KeyboardAccelerator Key="B" Invoked="Accel_CycleAudio" />
     </Grid.KeyboardAccelerators>
 
     <Grid.RowDefinitions>
@@ -53,6 +57,14 @@
       <InfoBar IsOpen="{x:Bind Vm.HasError, Mode=OneWay}" Severity="Error" Title="Can't play this file"
                Message="{x:Bind Vm.ErrorMessage, Mode=OneWay}" VerticalAlignment="Top" Margin="16"
                CloseButtonCommand="{x:Bind Vm.DismissErrorCommand}" />
+
+      <!-- On-screen message for quick feedback (volume, delays, track changes) -->
+      <Border HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,24,0,0" Padding="16,8"
+              CornerRadius="8" Background="#B3000000" IsHitTestVisible="False"
+              Visibility="{x:Bind local:MainWindow.VisibleWhen(Vm.IsOsdVisible), Mode=OneWay}">
+        <TextBlock Text="{x:Bind Vm.OsdText, Mode=OneWay}" Foreground="White" FontSize="16"
+                   AutomationProperties.LiveSetting="Polite" />
+      </Border>
     </Grid>
 
     <!-- Transport controls -->
@@ -62,6 +74,8 @@
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
@@ -96,7 +110,23 @@
               Value="{x:Bind Vm.Volume, Mode=TwoWay}" AutomationProperties.Name="Volume"
               ToolTipService.ToolTip="Volume (Up / Down), up to 200%" />
 
-      <DropDownButton Grid.Column="6" Content="{x:Bind Vm.RateText, Mode=OneWay}" AutomationProperties.Name="Playback speed"
+      <Button Grid.Column="6" IsEnabled="{x:Bind Vm.HasMedia, Mode=OneWay}"
+              ToolTipService.ToolTip="Audio track and delay (B)" AutomationProperties.Name="Audio track">
+        <FontIcon Glyph="&#xE8D6;" FontSize="16" />
+        <Button.Flyout>
+          <MenuFlyout x:Name="AudioMenu" Placement="Top" Opening="AudioMenu_Opening" />
+        </Button.Flyout>
+      </Button>
+
+      <Button Grid.Column="7" IsEnabled="{x:Bind Vm.HasMedia, Mode=OneWay}"
+              ToolTipService.ToolTip="Subtitles (V)" AutomationProperties.Name="Subtitles">
+        <FontIcon Glyph="&#xE7F0;" FontSize="16" />
+        <Button.Flyout>
+          <MenuFlyout x:Name="SubtitleMenu" Placement="Top" Opening="SubtitleMenu_Opening" />
+        </Button.Flyout>
+      </Button>
+
+      <DropDownButton Grid.Column="8" Content="{x:Bind Vm.RateText, Mode=OneWay}" AutomationProperties.Name="Playback speed"
                       ToolTipService.ToolTip="Playback speed">
         <DropDownButton.Flyout>
           <MenuFlyout Placement="Top">
@@ -113,11 +143,11 @@
         </DropDownButton.Flyout>
       </DropDownButton>
 
-      <Button Grid.Column="7" Click="Open_Click" ToolTipService.ToolTip="Open file (Ctrl+O)" AutomationProperties.Name="Open file">
+      <Button Grid.Column="9" Click="Open_Click" ToolTipService.ToolTip="Open file (Ctrl+O)" AutomationProperties.Name="Open file">
         <FontIcon Glyph="&#xE8E5;" FontSize="16" />
       </Button>
 
-      <Button Grid.Column="8" Click="Fullscreen_Click" ToolTipService.ToolTip="Full screen (F)" AutomationProperties.Name="Full screen">
+      <Button Grid.Column="10" Click="Fullscreen_Click" ToolTipService.ToolTip="Full screen (F)" AutomationProperties.Name="Full screen">
         <FontIcon x:Name="FullscreenIcon" Glyph="&#xE740;" FontSize="16" />
       </Button>
     </Grid>
