@@ -83,7 +83,18 @@ Choose the category **All Other App Types** and answer **No** to every content q
 2. `vistrel-2-subtitles.png`: *Subtitles in every format*
 3. `vistrel-3-playing.png`: *Smooth, hardware-accelerated playback*
 
-**Store logos**: optional. If asked, use `branding/store/store-logo-1080.png` (1:1 box art) and `branding/store/store-logo-300.png`.
+**Store logos and display images** (all in `branding/store/`, regenerate with `npm run store-art` in `branding/`):
+
+| Partner Center slot | File |
+|---|---|
+| 9:16 Poster art (1440×2160) | `poster-art-1440x2160.png` |
+| 1:1 Box art (2160×2160) | `box-art-2160x2160.png` |
+| Store display image 1:1, 300×300 | `app-tile-300x300.png` |
+| Store display image 1:1, 150×150 | `app-tile-150x150.png` |
+| Store display image 1:1, 71×71 | `app-tile-71x71.png` |
+| 16:9 Super hero art (3840×2160) | `super-hero-art-3840x2160.png` (no product name, as the Store requires) |
+
+Trailers are optional; skip them for now.
 
 ## Submission options → Notes for certification
 
