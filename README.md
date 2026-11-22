@@ -11,8 +11,9 @@ A fast, private video player for Windows 10 and 11, built with WinUI 3 and LibVL
 - Plays almost any format (MP4, MKV, WebM, AVI, MOV, TS and more) with hardware decoding
 - Open with the file picker, drag and drop, "Open with" or file associations
 - Seek bar, volume up to 200%, mute, playback speed from 0.25× to 4×, full screen
-- Keyboard shortcuts: Space/K play-pause · ←/→ 5 s · J/L 30 s · ↑/↓ volume · M mute · F/F11 full screen · Esc exit full screen · Ctrl+O open
-- Mica window background on Windows 11 (acrylic on Windows 10)
+- Keyboard shortcuts: Space/K play-pause · ←/→ 5 s · J/L 30 s · ↑/↓ volume · M mute · V/B cycle subtitles/audio · G/H subtitle delay · F/F11 full screen · Esc exit full screen · Ctrl+O open
+- Dark, distraction-free design in the Vistrel colours, with a matching title bar
+- Audio and subtitle track menus, external subtitle files, subtitle and audio delay
 - No telemetry; local logs only ([privacy policy](PRIVACY.md))
 
 ## Build and run
