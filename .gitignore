@@ -1,0 +1,32 @@
+# Build output
+bin/
+obj/
+AppPackages/
+BundleArtifacts/
+*.appx
+*.msix
+*.msixbundle
+*.msixupload
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Signing certificates and secrets (never commit)
+*.pfx
+*.p12
+*.snk
+.env
+
+# Node (branding tool)
+node_modules/
+
+# Test results
+TestResults/
+*.trx
+
+# Packaging output
+artifacts/

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>Vistrel Player (small sizes)</title>
+  <!-- Simplified for 16-48 px: no faint outer ring, thicker lens ring and play glyph. -->
+  <defs>
+    <linearGradient id="vistrel-cyan" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00E5FF"/>
+      <stop offset="1" stop-color="#2962FF"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="124" fill="url(#vistrel-cyan)"/>
+  <circle cx="128" cy="128" r="86" fill="none" stroke="#FFFFFF" stroke-width="22"/>
+  <path d="M108 88 L172 128 L108 168 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="18" stroke-linejoin="round"/>
+</svg>

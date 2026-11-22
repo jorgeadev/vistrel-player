@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Vistrel.App/Vistrel.App.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="src/Vistrel.Core/Vistrel.Core.csproj" />
+    <Project Path="src/Vistrel.Playback.Vlc/Vistrel.Playback.Vlc.csproj" />
+    <Project Path="src/Vistrel.Subtitles/Vistrel.Subtitles.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Vistrel.Core.Tests/Vistrel.Core.Tests.csproj" />
+    <Project Path="tests/Vistrel.Subtitles.Tests/Vistrel.Subtitles.Tests.csproj" />
+  </Folder>
+</Solution>

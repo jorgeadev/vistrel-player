@@ -1,0 +1,12 @@
+{
+  "name": "vistrel-branding",
+  "private": true,
+  "description": "Generates the MSIX image assets and app.ico for Vistrel Player from the SVG logos.",
+  "scripts": {
+    "assets": "node generate-assets.mjs"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "png-to-ico": "2.1.8"
+  }
+}

@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [x64, ARM64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore VistrelPlayer.slnx -p:Platform=${{ matrix.platform }}
+
+      - name: Check for vulnerable packages
+        shell: pwsh
+        run: |
+          $report = dotnet list VistrelPlayer.slnx package --vulnerable --include-transitive 2>&1
+          $report
+          if ($report -match 'has the following vulnerable packages') { exit 1 }
+
+      - name: Unit tests
+        if: matrix.platform == 'x64'
+        run: dotnet test --solution VistrelPlayer.slnx
+
+      - name: Build MSIX (unsigned, sideload)
+        run: >
+          dotnet build src/Vistrel.App -c Release
+          -p:Platform=${{ matrix.platform }}
+          -p:GenerateAppxPackageOnBuild=true
+          -p:UapAppxPackageBuildMode=SideloadOnly
+          -p:AppxBundle=Never
+          -p:AppxPackageDir=${{ github.workspace }}\artifacts\msix\
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vistrel-msix-${{ matrix.platform }}
+          path: artifacts/msix/**/*.msix
+          retention-days: 14

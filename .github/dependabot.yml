@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # LibVLC / VideoLAN packages are included here: player security fixes usually ship in them.
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      windows-app-sdk:
+        patterns: ["Microsoft.WindowsAppSDK", "Microsoft.Windows.SDK.BuildTools"]
+      libvlc:
+        patterns: ["LibVLCSharp*", "VideoLAN.LibVLC.*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: /branding
+    schedule:
+      interval: monthly

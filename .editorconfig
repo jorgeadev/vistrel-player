@@ -1,0 +1,21 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.{xml,xaml,csproj,props,targets,appxmanifest,manifest,json,yml,yaml,svg}]
+indent_size = 2
+
+[*.{mjs,js}]
+indent_size = 2
+end_of_line = lf
+
+[*.cs]
+csharp_style_namespace_declarations = file_scoped:warning
+dotnet_sort_system_directives_first = true
+csharp_prefer_braces = when_multiline:suggestion

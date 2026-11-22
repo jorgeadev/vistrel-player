@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <RootNamespace>Vistrel.Playback.Vlc</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- LibVLCSharp.WinUI ships the full LibVLCSharp.dll; do not also reference the core LibVLCSharp package. -->
+    <PackageReference Include="LibVLCSharp.WinUI" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Vistrel.Core\Vistrel.Core.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RootNamespace>Vistrel.App</RootNamespace>
+    <AssemblyName>VistrelPlayer</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <!-- Store builds are MSIX. For quick local runs: dotnet run -p:WindowsPackageType=None -->
+    <WindowsPackageType Condition="'$(WindowsPackageType)' == ''">MSIX</WindowsPackageType>
+    <WindowsAppSDKSelfContained Condition="'$(WindowsPackageType)' == 'None'">true</WindowsAppSDKSelfContained>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="LibVLCSharp.WinUI" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vistrel.Core\Vistrel.Core.csproj" />
+    <ProjectReference Include="..\Vistrel.Playback.Vlc\Vistrel.Playback.Vlc.csproj" />
+    <ProjectReference Include="..\Vistrel.Subtitles\Vistrel.Subtitles.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\**\*.png" />
+    <Content Include="Assets\app.ico" />
+    <Manifest Include="$(ApplicationManifest)" />
+  </ItemGroup>
+
+  <!--
+    Ship only the LibVLC plugins a local player needs: smaller package, faster first start
+    (fewer DLLs for antivirus to scan) and less code exposed to hostile files.
+    Re-add stream_out + mux for casting, and services_discovery for DLNA, when those features land.
+  -->
+  <ItemGroup>
+    <VlcWindowsX64ExcludeFiles Include="lua\%2A%2A;plugins\lua\%2A;plugins\access_output\%2A;plugins\stream_out\%2A;plugins\mux\%2A;plugins\services_discovery\%2A;plugins\visualization\%2A;plugins\video_splitter\%2A" />
+    <VlcWindowsArm64ExcludeFiles Include="@(VlcWindowsX64ExcludeFiles)" />
+  </ItemGroup>
+
+  <!-- Enables "Deploy" and package generation in Visual Studio for the single-project MSIX. -->
+  <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <ProjectCapability Include="Msix" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="Vistrel.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vlc="using:LibVLCSharp.Platforms.Windows"
+    xmlns:local="using:Vistrel.App"
+    Title="Vistrel Player">
+
+  <Grid x:Name="Root" AllowDrop="True" DragOver="Root_DragOver" Drop="Root_Drop">
+    <Grid.KeyboardAccelerators>
+      <KeyboardAccelerator Key="Space" Invoked="Accel_PlayPause" />
+      <KeyboardAccelerator Key="K" Invoked="Accel_PlayPause" />
+      <KeyboardAccelerator Key="Left" Invoked="Accel_SeekBack" />
+      <KeyboardAccelerator Key="Right" Invoked="Accel_SeekForward" />
+      <KeyboardAccelerator Key="J" Invoked="Accel_JumpBack" />
+      <KeyboardAccelerator Key="L" Invoked="Accel_JumpForward" />
+      <KeyboardAccelerator Key="Up" Invoked="Accel_VolumeUp" />
+      <KeyboardAccelerator Key="Down" Invoked="Accel_VolumeDown" />
+      <KeyboardAccelerator Key="M" Invoked="Accel_Mute" />
+      <KeyboardAccelerator Key="F" Invoked="Accel_Fullscreen" />
+      <KeyboardAccelerator Key="F11" Invoked="Accel_Fullscreen" />
+      <KeyboardAccelerator Key="Escape" Invoked="Accel_ExitFullscreen" />
+      <KeyboardAccelerator Key="O" Modifiers="Control" Invoked="Accel_Open" />
+    </Grid.KeyboardAccelerators>
+
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- Video surface -->
+    <Grid Background="Black" DoubleTapped="Video_DoubleTapped">
+      <vlc:VideoView x:Name="VideoView" Initialized="VideoView_Initialized"
+                     AutomationProperties.Name="Video" />
+
+      <!-- Empty state: shown until a file is opened -->
+      <StackPanel x:Name="EmptyState" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16"
+                  Visibility="{x:Bind local:MainWindow.CollapsedWhen(Vm.HasMedia), Mode=OneWay}">
+        <Image Source="ms-appx:///Assets/Square150x150Logo.scale-200.png" Width="120" Height="120"
+               AutomationProperties.AccessibilityView="Raw" />
+        <TextBlock Text="Vistrel Player" Foreground="White" FontSize="28" FontWeight="SemiBold" HorizontalAlignment="Center" />
+        <Button x:Name="OpenHeroButton" Click="Open_Click" HorizontalAlignment="Center" Style="{StaticResource AccentButtonStyle}"
+                AutomationProperties.Name="Open a video">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <FontIcon Glyph="&#xE8E5;" FontSize="16" />
+            <TextBlock Text="Open a video" />
+          </StackPanel>
+        </Button>
+        <TextBlock Text="or drop a file here  ·  Ctrl+O" Foreground="#B7C3D6" HorizontalAlignment="Center" />
+      </StackPanel>
+
+      <InfoBar IsOpen="{x:Bind Vm.HasError, Mode=OneWay}" Severity="Error" Title="Can't play this file"
+               Message="{x:Bind Vm.ErrorMessage, Mode=OneWay}" VerticalAlignment="Top" Margin="16"
+               CloseButtonCommand="{x:Bind Vm.DismissErrorCommand}" />
+    </Grid>
+
+    <!-- Transport controls -->
+    <Grid x:Name="ControlBar" Grid.Row="1" Padding="12,8" ColumnSpacing="8"
+          Background="{ThemeResource LayerFillColorDefaultBrush}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+
+      <Button Command="{x:Bind Vm.TogglePlayPauseCommand}" IsEnabled="{x:Bind Vm.HasMedia, Mode=OneWay}"
+              ToolTipService.ToolTip="{x:Bind Vm.PlayPauseLabel, Mode=OneWay}"
+              AutomationProperties.Name="{x:Bind Vm.PlayPauseLabel, Mode=OneWay}">
+        <FontIcon Glyph="{x:Bind Vm.PlayPauseGlyph, Mode=OneWay}" FontSize="16" />
+      </Button>
+
+      <TextBlock Grid.Column="1" Text="{x:Bind Vm.PositionText, Mode=OneWay}" VerticalAlignment="Center"
+                 MinWidth="48" TextAlignment="Right" Style="{StaticResource CaptionTextBlockStyle}" />
+
+      <Slider Grid.Column="2" x:Name="SeekBar" Minimum="0" Maximum="{x:Bind Vm.DurationSeconds, Mode=OneWay}"
+              Value="{x:Bind Vm.PositionSeconds, Mode=TwoWay}" IsEnabled="{x:Bind Vm.HasMedia, Mode=OneWay}"
+              StepFrequency="0.5" SmallChange="5" LargeChange="30" VerticalAlignment="Center"
+              IsThumbToolTipEnabled="False" AutomationProperties.Name="Seek" />
+
+      <TextBlock Grid.Column="3" Text="{x:Bind Vm.DurationText, Mode=OneWay}" VerticalAlignment="Center"
+                 MinWidth="48" Style="{StaticResource CaptionTextBlockStyle}" />
+
+      <Button Grid.Column="4" Command="{x:Bind Vm.ToggleMuteCommand}" ToolTipService.ToolTip="Mute (M)"
+              AutomationProperties.Name="Mute">
+        <FontIcon Glyph="{x:Bind Vm.MuteGlyph, Mode=OneWay}" FontSize="16" />
+      </Button>
+
+      <Slider Grid.Column="5" Width="110" Minimum="0" Maximum="200" StepFrequency="1" VerticalAlignment="Center"
+              Value="{x:Bind Vm.Volume, Mode=TwoWay}" AutomationProperties.Name="Volume"
+              ToolTipService.ToolTip="Volume (Up / Down), up to 200%" />
+
+      <DropDownButton Grid.Column="6" Content="{x:Bind Vm.RateText, Mode=OneWay}" AutomationProperties.Name="Playback speed"
+                      ToolTipService.ToolTip="Playback speed">
+        <DropDownButton.Flyout>
+          <MenuFlyout Placement="Top">
+            <MenuFlyoutItem Text="0.25×" Command="{x:Bind Vm.SetRateCommand}" CommandParameter="0.25" />
+            <MenuFlyoutItem Text="0.5×" Command="{x:Bind Vm.SetRateCommand}" CommandParameter="0.5" />
+            <MenuFlyoutItem Text="0.75×" Command="{x:Bind Vm.SetRateCommand}" CommandParameter="0.75" />
+            <MenuFlyoutItem Text="1× (normal)" Command="{x:Bind Vm.SetRateCommand}" CommandParameter="1" />
+            <MenuFlyoutItem Text="1.25×" Command="{x:Bind Vm.SetRateCommand}" CommandParameter="1.25" />
+            <MenuFlyoutItem Text="1.5×" Command="{x:Bind Vm.SetRateCommand}" CommandParameter="1.5" />
+            <MenuFlyoutItem Text="2×" Command="{x:Bind Vm.SetRateCommand}" CommandParameter="2" />
+            <MenuFlyoutItem Text="3×" Command="{x:Bind Vm.SetRateCommand}" CommandParameter="3" />
+            <MenuFlyoutItem Text="4×" Command="{x:Bind Vm.SetRateCommand}" CommandParameter="4" />
+          </MenuFlyout>
+        </DropDownButton.Flyout>
+      </DropDownButton>
+
+      <Button Grid.Column="7" Click="Open_Click" ToolTipService.ToolTip="Open file (Ctrl+O)" AutomationProperties.Name="Open file">
+        <FontIcon Glyph="&#xE8E5;" FontSize="16" />
+      </Button>
+
+      <Button Grid.Column="8" Click="Fullscreen_Click" ToolTipService.ToolTip="Full screen (F)" AutomationProperties.Name="Full screen">
+        <FontIcon x:Name="FullscreenIcon" Glyph="&#xE740;" FontSize="16" />
+      </Button>
+    </Grid>
+  </Grid>
+</Window>

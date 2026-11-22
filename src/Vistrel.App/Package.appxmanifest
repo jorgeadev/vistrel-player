@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Identity values come from Partner Center > Vistrel Player > Product management > Product identity.
+  Do not change Name or Publisher: the Store rejects packages whose identity doesn't match.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap rescap">
+
+  <Identity Name="JorgeADev.VistrelPlayer" Publisher="CN=3762A13D-8F35-4438-8364-BFF885553C72" Version="0.1.0.0" />
+
+  <Properties>
+    <DisplayName>Vistrel Player</DisplayName>
+    <PublisherDisplayName>JorgeADev</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate" />
+  </Resources>
+
+  <Applications>
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="$targetentrypoint$">
+      <uap:VisualElements
+        DisplayName="Vistrel Player"
+        Description="Fast, private video player with local AI subtitles."
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile
+          ShortName="Vistrel"
+          Wide310x150Logo="Assets\Wide310x150Logo.png"
+          Square71x71Logo="Assets\Square71x71Logo.png"
+          Square310x310Logo="Assets\Square310x310Logo.png">
+          <uap:ShowNameOnTiles>
+            <uap:ShowOn Tile="square150x150Logo" />
+            <uap:ShowOn Tile="wide310x150Logo" />
+            <uap:ShowOn Tile="square310x310Logo" />
+          </uap:ShowNameOnTiles>
+        </uap:DefaultTile>
+        <uap:SplashScreen Image="Assets\SplashScreen.png" BackgroundColor="#0B1426" />
+      </uap:VisualElements>
+
+      <Extensions>
+        <!-- Keep in sync with Vistrel.Core.MediaFormats. -->
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name="vistrel.video">
+            <uap:DisplayName>Video file</uap:DisplayName>
+            <uap:Logo>Assets\StoreLogo.png</uap:Logo>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.mp4</uap:FileType>
+              <uap:FileType>.m4v</uap:FileType>
+              <uap:FileType>.mkv</uap:FileType>
+              <uap:FileType>.webm</uap:FileType>
+              <uap:FileType>.avi</uap:FileType>
+              <uap:FileType>.mov</uap:FileType>
+              <uap:FileType>.wmv</uap:FileType>
+              <uap:FileType>.ts</uap:FileType>
+              <uap:FileType>.m2ts</uap:FileType>
+              <uap:FileType>.mts</uap:FileType>
+              <uap:FileType>.mpg</uap:FileType>
+              <uap:FileType>.mpeg</uap:FileType>
+              <uap:FileType>.flv</uap:FileType>
+              <uap:FileType>.3gp</uap:FileType>
+              <uap:FileType>.ogv</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name="vistrel.audio">
+            <uap:DisplayName>Audio file</uap:DisplayName>
+            <uap:Logo>Assets\StoreLogo.png</uap:Logo>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.mp3</uap:FileType>
+              <uap:FileType>.flac</uap:FileType>
+              <uap:FileType>.m4a</uap:FileType>
+              <uap:FileType>.aac</uap:FileType>
+              <uap:FileType>.ogg</uap:FileType>
+              <uap:FileType>.opus</uap:FileType>
+              <uap:FileType>.wav</uap:FileType>
+              <uap:FileType>.wma</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <!-- runFullTrust is required for Windows App SDK desktop apps. No broadFileSystemAccess:
+       files are opened only through the picker, drag-and-drop or file associations. -->
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>
