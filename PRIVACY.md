@@ -11,7 +11,8 @@ Vistrel Player is a video player that runs on your PC. It is built to keep what 
 ## What stays on your PC
 
 - **Log files**, used only to diagnose problems. They are stored in the app's private folder, kept for 7 days, and deleted when you uninstall the app. They never leave your PC unless you choose to attach them to a bug report.
-- **Settings and playback history** (for example, where you stopped in a video), stored in the app's private folder.
+- **Playback history**: the files you played recently and where you stopped in each, so the app can show them on the start screen and resume where you left off. It is a small file in the app's private folder, holds at most 200 files, and is deleted when you uninstall the app. Use **Clear history** on the start screen to erase it at any time.
+- **Settings**, stored in the app's private folder.
 
 ## Network access
 

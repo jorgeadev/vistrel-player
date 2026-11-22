@@ -5,9 +5,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vlc="using:LibVLCSharp.Platforms.Windows"
     xmlns:local="using:Vistrel.App"
+    xmlns:vm="using:Vistrel.App.ViewModels"
     Title="Vistrel Player">
 
-  <Grid x:Name="Root" AllowDrop="True" DragOver="Root_DragOver" Drop="Root_Drop">
+  <Grid x:Name="Root" AllowDrop="True" DragOver="Root_DragOver" Drop="Root_Drop"
+        Background="{StaticResource VistrelChromeBrush}" KeyboardAcceleratorPlacementMode="Hidden">
     <Grid.KeyboardAccelerators>
       <KeyboardAccelerator Key="Space" Invoked="Accel_PlayPause" />
       <KeyboardAccelerator Key="K" Invoked="Accel_PlayPause" />
@@ -22,22 +24,39 @@
       <KeyboardAccelerator Key="F11" Invoked="Accel_Fullscreen" />
       <KeyboardAccelerator Key="Escape" Invoked="Accel_ExitFullscreen" />
       <KeyboardAccelerator Key="O" Modifiers="Control" Invoked="Accel_Open" />
+      <KeyboardAccelerator Key="G" Invoked="Accel_SubtitlesEarlier" />
+      <KeyboardAccelerator Key="H" Invoked="Accel_SubtitlesLater" />
+      <KeyboardAccelerator Key="V" Invoked="Accel_CycleSubtitles" />
+      <KeyboardAccelerator Key="B" Invoked="Accel_CycleAudio" />
+      <KeyboardAccelerator Key="Home" Invoked="Accel_StartOver" />
     </Grid.KeyboardAccelerators>
 
     <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
 
+    <!-- Custom title bar: same colour as the control bar; the system caption buttons sit on the right. -->
+    <Grid x:Name="AppTitleBar" Height="40" Background="{StaticResource VistrelChromeBrush}">
+      <StackPanel Orientation="Horizontal" Spacing="10" Margin="14,0,0,0" VerticalAlignment="Center">
+        <Image Source="ms-appx:///Assets/Square44x44Logo.targetsize-24.png" Width="16" Height="16"
+               AutomationProperties.AccessibilityView="Raw" />
+        <TextBlock x:Name="AppTitleText" Text="{x:Bind Vm.Title, Mode=OneWay}" VerticalAlignment="Center"
+                   Style="{StaticResource CaptionTextBlockStyle}" Foreground="{StaticResource VistrelSecondaryTextBrush}"
+                   TextTrimming="CharacterEllipsis" />
+      </StackPanel>
+    </Grid>
+
     <!-- Video surface -->
-    <Grid Background="Black" DoubleTapped="Video_DoubleTapped">
+    <Grid Grid.Row="1" Background="{StaticResource VistrelVideoBackgroundBrush}" DoubleTapped="Video_DoubleTapped">
       <vlc:VideoView x:Name="VideoView" Initialized="VideoView_Initialized"
                      AutomationProperties.Name="Video" />
 
       <!-- Empty state: shown until a file is opened -->
       <StackPanel x:Name="EmptyState" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16"
                   Visibility="{x:Bind local:MainWindow.CollapsedWhen(Vm.HasMedia), Mode=OneWay}">
-        <Image Source="ms-appx:///Assets/Square150x150Logo.scale-200.png" Width="120" Height="120"
+        <Image Source="ms-appx:///Assets/Square150x150Logo.scale-200.png" Width="104" Height="104"
                AutomationProperties.AccessibilityView="Raw" />
         <TextBlock Text="Vistrel Player" Foreground="White" FontSize="28" FontWeight="SemiBold" HorizontalAlignment="Center" />
         <Button x:Name="OpenHeroButton" Click="Open_Click" HorizontalAlignment="Center" Style="{StaticResource AccentButtonStyle}"
@@ -47,21 +66,78 @@
             <TextBlock Text="Open a video" />
           </StackPanel>
         </Button>
-        <TextBlock Text="or drop a file here  ·  Ctrl+O" Foreground="#B7C3D6" HorizontalAlignment="Center" />
+        <TextBlock Text="or drop a file here  ·  Ctrl+O" Foreground="{StaticResource VistrelSecondaryTextBrush}" HorizontalAlignment="Center" />
+
+        <!-- Recent files: click to continue where you left off -->
+        <StackPanel Width="520" Margin="0,20,0,0" Spacing="4"
+                    Visibility="{x:Bind local:MainWindow.VisibleWhen(Vm.HasRecentFiles), Mode=OneWay}">
+          <Grid>
+            <TextBlock Text="Recent" Style="{StaticResource BodyStrongTextBlockStyle}" VerticalAlignment="Center" />
+            <HyperlinkButton Content="Clear history" HorizontalAlignment="Right" Padding="6,2"
+                             Command="{x:Bind Vm.ClearHistoryCommand}"
+                             ToolTipService.ToolTip="Forget recent files and resume positions" />
+          </Grid>
+          <ListView ItemsSource="{x:Bind Vm.RecentFiles}" SelectionMode="None" IsItemClickEnabled="True"
+                    ItemClick="RecentFiles_ItemClick" MaxHeight="300" AutomationProperties.Name="Recent files">
+            <ListView.ItemTemplate>
+              <DataTemplate x:DataType="vm:RecentFileItem">
+                <Grid Padding="0,8" ColumnSpacing="12" ToolTipService.ToolTip="{x:Bind Path}"
+                      AutomationProperties.Name="{x:Bind Name}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <FontIcon Glyph="&#xE714;" FontSize="18" VerticalAlignment="Center"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                  <StackPanel Grid.Column="1" Spacing="2">
+                    <TextBlock Text="{x:Bind Name}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{x:Bind Detail}" Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{StaticResource VistrelSecondaryTextBrush}" />
+                    <ProgressBar Value="{x:Bind Progress}" Maximum="1" Margin="0,4,0,0"
+                                 Visibility="{x:Bind local:MainWindow.VisibleWhen(HasProgress)}"
+                                 AutomationProperties.AccessibilityView="Raw" />
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ListView.ItemTemplate>
+          </ListView>
+        </StackPanel>
       </StackPanel>
 
       <InfoBar IsOpen="{x:Bind Vm.HasError, Mode=OneWay}" Severity="Error" Title="Can't play this file"
                Message="{x:Bind Vm.ErrorMessage, Mode=OneWay}" VerticalAlignment="Top" Margin="16"
                CloseButtonCommand="{x:Bind Vm.DismissErrorCommand}" />
+
+      <!-- On-screen message for quick feedback (volume, delays, track changes) -->
+      <Border HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,24,0,0" Padding="16,8"
+              CornerRadius="8" Background="#B3000000" IsHitTestVisible="False"
+              Visibility="{x:Bind local:MainWindow.VisibleWhen(Vm.IsOsdVisible), Mode=OneWay}">
+        <TextBlock Text="{x:Bind Vm.OsdText, Mode=OneWay}" Foreground="White" FontSize="16"
+                   AutomationProperties.LiveSetting="Polite" />
+      </Border>
     </Grid>
 
     <!-- Transport controls -->
-    <Grid x:Name="ControlBar" Grid.Row="1" Padding="12,8" ColumnSpacing="8"
-          Background="{ThemeResource LayerFillColorDefaultBrush}">
+    <Grid x:Name="ControlBar" Grid.Row="2" Padding="12,8" ColumnSpacing="6"
+          Background="{StaticResource VistrelChromeBrush}"
+          BorderBrush="{StaticResource VistrelChromeDividerBrush}" BorderThickness="0,1,0,0">
+      <Grid.Resources>
+        <!-- Disabled buttons (nothing loaded yet) stay flat too; only the dimmed icon shows. -->
+        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="Transparent" />
+        <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="Transparent" />
+        <!-- Flat icon buttons: no box until hovered, like other media players. -->
+        <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+          <Setter Property="Background" Value="Transparent" />
+          <Setter Property="BorderBrush" Value="Transparent" />
+          <Setter Property="Padding" Value="10,8" />
+        </Style>
+      </Grid.Resources>
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
@@ -96,7 +172,23 @@
               Value="{x:Bind Vm.Volume, Mode=TwoWay}" AutomationProperties.Name="Volume"
               ToolTipService.ToolTip="Volume (Up / Down), up to 200%" />
 
-      <DropDownButton Grid.Column="6" Content="{x:Bind Vm.RateText, Mode=OneWay}" AutomationProperties.Name="Playback speed"
+      <Button Grid.Column="6" IsEnabled="{x:Bind Vm.HasMedia, Mode=OneWay}"
+              ToolTipService.ToolTip="Audio track and delay (B)" AutomationProperties.Name="Audio track">
+        <FontIcon Glyph="&#xE8D6;" FontSize="16" />
+        <Button.Flyout>
+          <MenuFlyout x:Name="AudioMenu" Placement="Top" Opening="AudioMenu_Opening" />
+        </Button.Flyout>
+      </Button>
+
+      <Button Grid.Column="7" IsEnabled="{x:Bind Vm.HasMedia, Mode=OneWay}"
+              ToolTipService.ToolTip="Subtitles (V)" AutomationProperties.Name="Subtitles">
+        <FontIcon Glyph="&#xE7F0;" FontSize="16" />
+        <Button.Flyout>
+          <MenuFlyout x:Name="SubtitleMenu" Placement="Top" Opening="SubtitleMenu_Opening" />
+        </Button.Flyout>
+      </Button>
+
+      <DropDownButton Grid.Column="8" Background="Transparent" BorderBrush="Transparent" Content="{x:Bind Vm.RateText, Mode=OneWay}" AutomationProperties.Name="Playback speed"
                       ToolTipService.ToolTip="Playback speed">
         <DropDownButton.Flyout>
           <MenuFlyout Placement="Top">
@@ -113,11 +205,11 @@
         </DropDownButton.Flyout>
       </DropDownButton>
 
-      <Button Grid.Column="7" Click="Open_Click" ToolTipService.ToolTip="Open file (Ctrl+O)" AutomationProperties.Name="Open file">
+      <Button Grid.Column="9" Click="Open_Click" ToolTipService.ToolTip="Open file (Ctrl+O)" AutomationProperties.Name="Open file">
         <FontIcon Glyph="&#xE8E5;" FontSize="16" />
       </Button>
 
-      <Button Grid.Column="8" Click="Fullscreen_Click" ToolTipService.ToolTip="Full screen (F)" AutomationProperties.Name="Full screen">
+      <Button Grid.Column="10" Click="Fullscreen_Click" ToolTipService.ToolTip="Full screen (F)" AutomationProperties.Name="Full screen">
         <FontIcon x:Name="FullscreenIcon" Glyph="&#xE740;" FontSize="16" />
       </Button>
     </Grid>

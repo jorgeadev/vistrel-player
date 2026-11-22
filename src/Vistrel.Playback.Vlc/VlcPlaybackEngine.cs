@@ -1,5 +1,6 @@
 using LibVLCSharp.Shared;
 using Vistrel.Core.Playback;
+using MediaTrack = Vistrel.Core.Playback.MediaTrack;
 
 namespace Vistrel.Playback.Vlc;
 
@@ -42,7 +43,10 @@ public sealed class VlcPlaybackEngine : IPlaybackEngine
             SetState(PlaybackState.Error);
             ErrorOccurred?.Invoke(this, new PlaybackError("This file could not be played. It may be damaged or use an unsupported format.", _source));
         };
-        MediaPlayer.TimeChanged += (_, e) => PositionChanged?.Invoke(this, TimeSpan.FromMilliseconds(e.Time));
+        MediaPlayer.ESAdded += (_, e) => RaiseTracksChanged(e.Type);
+        MediaPlayer.ESDeleted += (_, e) => RaiseTracksChanged(e.Type);
+        MediaPlayer.ESSelected += (_, e) => RaiseTracksChanged(e.Type);
+        MediaPlayer.TimeChanged +=(_, e) => PositionChanged?.Invoke(this, TimeSpan.FromMilliseconds(e.Time));
         MediaPlayer.LengthChanged += (_, e) =>
         {
             _duration = TimeSpan.FromMilliseconds(Math.Max(0, e.Length));
@@ -90,6 +94,23 @@ public sealed class VlcPlaybackEngine : IPlaybackEngine
         set => MediaPlayer.SetRate(PlaybackLimits.ClampRate(value));
     }
 
+    // LibVLC stores delays in microseconds; one TimeSpan tick is 0.1 µs.
+    public TimeSpan SubtitleDelay
+    {
+        get => TimeSpan.FromTicks(MediaPlayer.SpuDelay * 10);
+        set => MediaPlayer.SetSpuDelay(PlaybackLimits.ClampDelay(value).Ticks / 10);
+    }
+
+    public TimeSpan AudioDelay
+    {
+        get => TimeSpan.FromTicks(MediaPlayer.AudioDelay * 10);
+        set => MediaPlayer.SetAudioDelay(PlaybackLimits.ClampDelay(value).Ticks / 10);
+    }
+
+    /// <summary>Largest external subtitle file accepted; real subtitle files are far smaller.</summary>
+    private const long MaxSubtitleFileBytes = 50L * 1024 * 1024;
+
+    public event EventHandler? TracksChanged;
     public event EventHandler<PlaybackState>? StateChanged;
     public event EventHandler<TimeSpan>? PositionChanged;
     public event EventHandler<TimeSpan>? DurationChanged;
@@ -133,6 +154,36 @@ public sealed class VlcPlaybackEngine : IPlaybackEngine
     }
 
     public void SeekRelative(TimeSpan offset) => Seek(Position + offset);
+
+    public IReadOnlyList<MediaTrack> GetTracks(TrackKind kind)
+    {
+        var descriptions = kind == TrackKind.Audio ? MediaPlayer.AudioTrackDescription : MediaPlayer.SpuDescription;
+        return descriptions
+            .Select(d => new MediaTrack(d.Id, string.IsNullOrWhiteSpace(d.Name) ? $"Track {d.Id}" : d.Name, kind))
+            .ToArray();
+    }
+
+    public int GetSelectedTrackId(TrackKind kind) =>
+        kind == TrackKind.Audio ? MediaPlayer.AudioTrack : MediaPlayer.Spu;
+
+    public bool SelectTrack(TrackKind kind, int id) =>
+        kind == TrackKind.Audio ? MediaPlayer.SetAudioTrack(id) : MediaPlayer.SetSpu(id);
+
+    public bool AddSubtitleFile(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        if (_media is null || !Core.MediaFormats.IsSubtitle(path)) return false;
+
+        var file = new FileInfo(path);
+        if (!file.Exists || file.Length > MaxSubtitleFileBytes) return false;
+
+        return MediaPlayer.AddSlave(MediaSlaveType.Subtitle, new Uri(file.FullName).AbsoluteUri, select: true);
+    }
+
+    private void RaiseTracksChanged(TrackType type)
+    {
+        if (type is TrackType.Audio or TrackType.Text) TracksChanged?.Invoke(this, EventArgs.Empty);
+    }
 
     private void SetState(PlaybackState state)
     {
