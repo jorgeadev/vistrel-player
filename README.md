@@ -52,6 +52,10 @@ Use `-p:Platform=ARM64` for ARM64 PCs.
 3. Build with `-p:UapAppxPackageBuildMode=StoreUpload -p:AppxBundle=Always -p:AppxBundlePlatforms="x64|arm64"` and upload the `.msixupload`.
 4. Use `PRIVACY.md` (published on GitHub Pages) as the privacy policy URL.
 
+## Contributing
+
+Pull requests go to the `develop` branch. See [CONTRIBUTING.md](CONTRIBUTING.md) and, for vulnerabilities, [SECURITY.md](SECURITY.md).
+
 ## License
 
 GPL-3.0. See [LICENSE](LICENSE) and [third-party notices](THIRD-PARTY-NOTICES.md). The Vistrel name and logo are not covered by the code license.

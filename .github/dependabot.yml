@@ -3,6 +3,7 @@ updates:
   # LibVLC / VideoLAN packages are included here: player security fixes usually ship in them.
   - package-ecosystem: nuget
     directory: /
+    target-branch: develop
     schedule:
       interval: weekly
     groups:
@@ -12,9 +13,11 @@ updates:
         patterns: ["LibVLCSharp*", "VideoLAN.LibVLC.*"]
   - package-ecosystem: github-actions
     directory: /
+    target-branch: develop
     schedule:
       interval: weekly
   - package-ecosystem: npm
     directory: /branding
+    target-branch: develop
     schedule:
       interval: monthly
