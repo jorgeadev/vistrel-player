@@ -94,6 +94,9 @@ Choose the category **All Other App Types** and answer **No** to every content q
 | Store display image 1:1, 71×71 | `app-tile-71x71.png` |
 | 16:9 Super hero art (3840×2160) | `super-hero-art-3840x2160.png` (no product name, as the Store requires) |
 
+| Xbox: Branded key art (584×800) | `xbox-branded-key-art-584x800.png` (optional; only shown on Xbox) |
+| Xbox: Titled hero art (1920×1080) | `xbox-titled-hero-art-1920x1080.png` (optional; only shown on Xbox) |
+
 Trailers are optional; skip them for now.
 
 ## Submission options → Notes for certification

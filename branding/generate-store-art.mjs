@@ -79,6 +79,26 @@ const art = {
     ${rings(w * 0.68, h * 0.5, 520, 0.18)}
     ${placeLogo(w * 0.68 - 520, h * 0.5 - 520, 1040)}`],
 
+  // Xbox images (only shown on Xbox; optional for this Windows-only app). Both include the name.
+  "xbox-branded-key-art-584x800.png": [584, 800, (w, h) => `
+    ${background(w, h)}
+    <ellipse cx="${w * 0.5}" cy="${h * 0.38}" rx="${w * 0.75}" ry="${w * 0.75}" fill="url(#glowB)"/>
+    <ellipse cx="${w * 0.75}" cy="${h * 0.2}" rx="${w * 0.45}" ry="${w * 0.45}" fill="url(#glowA)"/>
+    ${rings(w * 0.5, h * 0.38, 150)}
+    ${placeLogo(w * 0.5 - 150, h * 0.38 - 150, 300)}
+    ${title(w / 2, h * 0.77, 62)}
+    ${tagline(w / 2, h * 0.77 + 46, 26)}`],
+
+  "xbox-titled-hero-art-1920x1080.png": [1920, 1080, (w, h) => `
+    ${background(w, h)}
+    <ellipse cx="${w * 0.7}" cy="${h * 0.5}" rx="${h * 0.95}" ry="${h * 0.95}" fill="url(#glowB)"/>
+    <ellipse cx="${w * 0.84}" cy="${h * 0.25}" rx="${h * 0.6}" ry="${h * 0.6}" fill="url(#glowA)"/>
+    <ellipse cx="${w * 0.15}" cy="${h * 0.9}" rx="${h * 0.7}" ry="${h * 0.5}" fill="url(#glowC)"/>
+    ${rings(w * 0.72, h * 0.5, 250, 0.18)}
+    ${placeLogo(w * 0.72 - 250, h * 0.5 - 250, 500)}
+    ${title(w * 0.08, h * 0.5, 120, "start")}
+    ${tagline(w * 0.08, h * 0.5 + 80, 46, "start")}`],
+
   // Store display images (1:1 tiles on Windows 10/11): logo on the app's dark chrome.
   ...Object.fromEntries([300, 150, 71].map((s) => [`app-tile-${s}x${s}.png`, [s, s, (w, h) => `
     <rect width="${w}" height="${h}" fill="${C.chrome}"/>
