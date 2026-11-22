@@ -45,7 +45,7 @@ jobs:
           -p:AppxBundle=Never
           -p:AppxPackageDir=${{ github.workspace }}\artifacts\msix\
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: vistrel-msix-${{ matrix.platform }}
           path: artifacts/msix/**/*.msix
