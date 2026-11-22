@@ -3,7 +3,8 @@
   "private": true,
   "description": "Generates the MSIX image assets and app.ico for Vistrel Player from the SVG logos.",
   "scripts": {
-    "assets": "node generate-assets.mjs"
+    "assets": "node generate-assets.mjs",
+    "store-art": "node generate-store-art.mjs"
   },
   "devDependencies": {
     "@resvg/resvg-js": "2.6.2",
