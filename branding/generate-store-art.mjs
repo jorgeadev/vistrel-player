@@ -105,12 +105,25 @@ const art = {
     ${placeLogo(w * 0.15, h * 0.15, w * 0.7, s <= 71)}`]])),
 };
 
-for (const [name, [w, h, body]] of Object.entries(art)) {
+// Smaller variants rendered from the same design (sharper than resizing the PNG).
+const scaled = {
+  "box-art-1080x1080.png": ["box-art-2160x2160.png", 1080],
+  "poster-art-720x1080.png": ["poster-art-1440x2160.png", 720],
+  "super-hero-art-1920x1080.png": ["super-hero-art-3840x2160.png", 1920],
+};
+
+const jobs = [
+  ...Object.entries(art).map(([name, def]) => [name, def, null]),
+  ...Object.entries(scaled).map(([name, [source, width]]) => [name, art[source], width]),
+];
+
+for (const [name, [w, h, body], width] of jobs) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body(w, h)}</svg>`;
   const png = new Resvg(svg, {
-    fitTo: { mode: "original" },
+    fitTo: width ? { mode: "width", value: width } : { mode: "original" },
     font: { loadSystemFonts: true, defaultFontFamily: "Segoe UI" },
   }).render().asPng();
   writeFileSync(join(outDir, name), png);
-  console.log(`${name.padEnd(30)} ${w}x${h}  ${(png.length / 1024).toFixed(0)} KB`);
+  const outW = width ?? w, outH = width ? Math.round(h * width / w) : h;
+  console.log(`${name.padEnd(36)} ${outW}x${outH}  ${(png.length / 1024).toFixed(0)} KB`);
 }

@@ -87,12 +87,12 @@ Choose the category **All Other App Types** and answer **No** to every content q
 
 | Partner Center slot | File |
 |---|---|
-| 9:16 Poster art (1440×2160) | `poster-art-1440x2160.png` |
-| 1:1 Box art (2160×2160) | `box-art-2160x2160.png` |
+| 9:16 Poster art (720×1080 or 1440×2160) | `poster-art-720x1080.png` or `poster-art-1440x2160.png` |
+| 1:1 Box art (1080×1080 or 2160×2160) | `box-art-1080x1080.png` or `box-art-2160x2160.png` |
 | Store display image 1:1, 300×300 | `app-tile-300x300.png` |
 | Store display image 1:1, 150×150 | `app-tile-150x150.png` |
 | Store display image 1:1, 71×71 | `app-tile-71x71.png` |
-| 16:9 Super hero art (3840×2160) | `super-hero-art-3840x2160.png` (no product name, as the Store requires) |
+| 16:9 Super hero art (1920×1080 or 3840×2160) | `super-hero-art-1920x1080.png` or `super-hero-art-3840x2160.png` (no product name, as the Store requires) |
 
 | Xbox: Branded key art (584×800) | `xbox-branded-key-art-584x800.png` (optional; only shown on Xbox) |
 | Xbox: Titled hero art (1920×1080) | `xbox-titled-hero-art-1920x1080.png` (optional; only shown on Xbox) |
