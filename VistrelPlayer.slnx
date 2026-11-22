@@ -1,7 +1,15 @@
 <Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="ARM64" />
+  </Configurations>
   <Folder Name="/src/">
+    <!-- The WinUI app has no Any CPU build; it maps to x64 unless ARM64 is selected. -->
     <Project Path="src/Vistrel.App/Vistrel.App.csproj">
-      <Platform Project="x64" />
+      <Platform Solution="*|Any CPU" Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="*|ARM64" Project="ARM64" />
     </Project>
     <Project Path="src/Vistrel.Core/Vistrel.Core.csproj" />
     <Project Path="src/Vistrel.Playback.Vlc/Vistrel.Playback.Vlc.csproj" />
